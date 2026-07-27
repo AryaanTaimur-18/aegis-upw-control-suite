@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS-UPW — Silicon Fab Water Control Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #070b14;
+  --bg1:     #0b1120;
+  --bg2:     #0f1829;
+  --bg3:     #141f36;
+  --border:  #1a2d50;
+  --border2: #243d6a;
+  --accent:  #2d7fff;
+  --accent2: #00d4ff;
+  --green:   #00e676;
+  --amber:   #ffab00;
+  --red:     #ff1744;
+  --purple:  #b84aff;
+  --text:    #c8deff;
+  --muted:   #4a6080;
+  --mono:    'Share Tech Mono', monospace;
+  --sans:    'Rajdhani', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-logo {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--accent2);
+  letter-spacing: 3px;
+  display: flex; align-items: center; gap: 10px;
+}
+.topbar-logo .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse-dot 1.4s infinite;
+}
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.topbar-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  display: flex; gap: 20px;
+}
+.topbar-meta span { color: var(--accent); }
+
+.conn-indicator {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 3px;
+  border: 1px solid;
+}
+.conn-ok   { color: var(--green); border-color: var(--green); }
+.conn-fail { color: var(--red);   border-color: var(--red); animation: blink-fast 0.5s infinite; }
+@keyframes blink-fast { 50%{opacity:0.2} }
+
+/* ── LAYOUT ── */
+.suite {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  min-height: calc(100vh - 48px);
+}
+.panel {
+  background: var(--bg);
+  padding: 16px;
+  overflow: hidden;
+}
+.panel-header {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-header .badge {
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 2px;
+  background: rgba(45,127,255,0.15);
+  color: var(--accent);
+  border: 1px solid rgba(45,127,255,0.3);
+  letter-spacing: 1px;
+}
+.panel-header .badge.red { background: rgba(255,23,68,0.15); color: var(--red); border-color: rgba(255,23,68,0.3); }
+
+/* ── SECTION BLOCKS ── */
+.block {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.block-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+/* ── SLIDERS ── */
+.slider-row { margin-bottom: 11px; }
+.slider-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 5px;
+}
+.slider-name { font-size: 12px; font-weight: 600; color: var(--text); letter-spacing: 1px; }
+.slider-value {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--accent2);
+  min-width: 72px;
+  text-align: right;
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 6px var(--accent);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+input[type=range].r-green::-webkit-slider-thumb { background: var(--green); box-shadow: 0 0 6px var(--green); }
+input[type=range].r-amber::-webkit-slider-thumb { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+input[type=range].r-red::-webkit-slider-thumb   { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+
+/* ── BUTTONS ── */
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 10px; }
+.btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  padding: 9px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border2);
+  background: var(--bg2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  user-select: none;
+}
+.btn:hover { background: var(--bg3); color: var(--text); border-color: var(--accent); }
+.btn:active { transform: scale(0.97); }
+.btn.b-red   { border-color: rgba(255,23,68,0.4); color: #ff6688; }
+.btn.b-red:hover { background: rgba(255,23,68,0.12); border-color: var(--red); color: var(--red); }
+.btn.b-amber { border-color: rgba(255,171,0,0.4);  color: #ffc740; }
+.btn.b-amber:hover { background: rgba(255,171,0,0.1); border-color: var(--amber); color: var(--amber); }
+.btn.b-green { border-color: rgba(0,230,118,0.4);  color: #44ffaa; }
+.btn.b-green:hover { background: rgba(0,230,118,0.1); border-color: var(--green); color: var(--green); }
+.btn.b-purple { border-color: rgba(184,74,255,0.4); color: #cc88ff; }
+.btn.b-purple:hover { background: rgba(184,74,255,0.1); border-color: var(--purple); color: var(--purple); }
+.btn.active-red {
+  background: rgba(255,23,68,0.15);
+  border-color: var(--red); color: var(--red);
+  animation: btn-blink 0.5s infinite;
+}
+@keyframes btn-blink { 50%{ opacity:0.5; } }
+
+/* ── GAUGES GRID ── */
+.gauge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.gauge {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 10px 8px;
+  text-align: center;
+}
+.gauge-label { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--muted); margin-bottom: 4px; }
+.gauge-number { font-family: var(--mono); font-size: 22px; font-weight: 400; line-height: 1; }
+.gauge-unit   { font-family: var(--mono); font-size: 8px; color: var(--muted); margin-top: 2px; }
+
+/* ── TANK CANVAS ── */
+#tank-canvas {
+  width: 100%;
+  height: 120px;
+  display: block;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+/* ── SCORE BAR ── */
+.score-wrap { margin-bottom: 10px; }
+.score-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.score-label { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: var(--muted); }
+.score-number { font-family: var(--mono); font-size: 24px; font-weight: 400; }
+.score-track {
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.score-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease, background 0.4s ease; }
+
+/* ── NEURAL NET CANVAS ── */
+#nn-canvas {
+  width: 100%;
+  height: 140px;
+  display: block;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+/* ── PIPE ROUTING ── */
+.pipe-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 7px;
+}
+.pipe-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; width: 60px; color: var(--muted); flex-shrink: 0; }
+.pipe-track {
+  flex: 1;
+  height: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.pipe-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease, background 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+.pipe-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0px, transparent 8px, rgba(255,255,255,0.12) 8px, rgba(255,255,255,0.12) 14px);
+  animation: flow-anim 0.6s linear infinite;
+}
+@keyframes flow-anim { from{background-position:0 0} to{background-position:22px 0} }
+.pipe-status { font-family: var(--mono); font-size: 9px; width: 54px; text-align: right; flex-shrink: 0; }
+
+/* ── ECON COUNTERS ── */
+.econ-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-bottom: 10px; }
+.econ-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  text-align: center;
+}
+.econ-num { font-family: var(--mono); font-size: 16px; color: var(--accent2); }
+.econ-lbl { font-family: var(--mono); font-size: 7px; letter-spacing: 1px; color: var(--muted); margin-top: 3px; }
+
+/* ── HISTORY LOG ── */
+.log-area {
+  background: #030609;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  height: 120px;
+  overflow-y: auto;
+  padding: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+.log-area::-webkit-scrollbar { width: 4px; }
+.log-area::-webkit-scrollbar-track { background: var(--bg2); }
+.log-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.log-line { padding: 2px 0; border-bottom: 1px solid #0a1020; line-height: 1.4; }
+.log-line.l-ok    { color: #00b060; }
+.log-line.l-warn  { color: #cc8800; }
+.log-line.l-alarm { color: #cc2244; }
+.log-line.l-info  { color: #4a6080; }
+
+/* ── ALARM OVERLAY ── */
+#alarm-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 9000;
+  border: 4px solid transparent;
+}
+#alarm-overlay.active {
+  display: block;
+  border-color: var(--red);
+  animation: alarm-border 0.35s infinite;
+}
+@keyframes alarm-border {
+  0%,100% { border-color: var(--red); box-shadow: inset 0 0 40px rgba(255,23,68,0.18); }
+  50%      { border-color: #ff8888;   box-shadow: inset 0 0 80px rgba(255,23,68,0.36); }
+}
+
+/* ── HISTORY CHART CANVAS ── */
+#history-canvas {
+  width: 100%;
+  height: 70px;
+  display: block;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  margin-top: 6px;
+}
+
+/* ── OFFLINE BANNER ── */
+#offline-banner {
+  display: none;
+  position: fixed;
+  top: 48px; left: 50%; transform: translateX(-50%);
+  background: rgba(255,23,68,0.92);
+  color: white;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  padding: 8px 24px;
+  border-radius: 0 0 6px 6px;
+  z-index: 9998;
+}
+</style>
+</head>
+<body>
+
+<div id="alarm-overlay"></div>
+<div id="offline-banner">⚠ BACKEND OFFLINE — START aegis_server ON PORT 8080</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="dot" id="top-dot"></div>
+    AEGIS-UPW CONTROL SUITE v2.0
+  </div>
+  <div class="topbar-meta">
+    TICK <span id="top-tick">0</span> &nbsp;|&nbsp;
+    PURITY <span id="top-purity">100.0%</span> &nbsp;|&nbsp;
+    SCORE <span id="top-score">—</span>
+  </div>
+  <div class="conn-indicator conn-ok" id="conn-badge">● CONNECTED</div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="suite">
+
+  <!-- ════════════════ WINDOW 1 — CHAOS LAB ════════════════ -->
+  <div class="panel" id="panel-lab">
+    <div class="panel-header">
+      WINDOW 01 — CHAOS TESTING LAB
+      <div class="badge">INPUT CONTROLS</div>
+    </div>
+
+    <!-- Sliders -->
+    <div class="block">
+      <div class="block-title">Environment Variables</div>
+
+      <div class="slider-row">
+        <div class="slider-meta">
+          <span class="slider-name">TEMPERATURE</span>
+          <span class="slider-value" id="sv-temp">25.0 °C</span>
+        </div>
+        <input type="range" min="0" max="100" value="25" step="1" id="sl-temp" class="r-amber" oninput="onSlider()">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-meta">
+          <span class="slider-name">PRESSURE</span>
+          <span class="slider-value" id="sv-pres">45.0 PSI</span>
+        </div>
+        <input type="range" min="0" max="200" value="45" step="1" id="sl-pres" class="r-amber" oninput="onSlider()">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-meta">
+          <span class="slider-name">CONTAMINATION LOAD</span>
+          <span class="slider-value" id="sv-cont">0.0 %</span>
+        </div>
+        <input type="range" min="0" max="100" value="0" step="1" id="sl-cont" class="r-red" oninput="onSlider()">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-meta">
+          <span class="slider-name">TOC INJECT</span>
+          <span class="slider-value" id="sv-toc">0.0 ppb</span>
+        </div>
+        <input type="range" min="0" max="50" value="0" step="1" id="sl-toc" class="r-red" oninput="onSlider()">
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="block">
+      <div class="block-title">Sabotage Controls — Backend API</div>
+      <div class="btn-grid">
+        <div class="btn b-red"    id="btn-leak"    onclick="sendCmd('/inject_leak')">⚠ INJECT LEAK</div>
+        <div class="btn b-amber"  id="btn-clog"    onclick="sendCmd('/inject_clog')">⚙ CLOG FILTER</div>
+        <div class="btn b-green"                   onclick="sendCmd('/fix_system')">✓ FIX SYSTEM</div>
+        <div class="btn b-purple"                  onclick="sendCmd('/stress_test')">↯ STRESS TEST</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;letter-spacing:1px">
+        CALLS: <span style="color:var(--accent)">localhost:8080/{endpoint}</span>
+      </div>
+    </div>
+
+    <!-- Pipe tank visualizer -->
+    <div class="block">
+      <div class="block-title">Water Purity Visualizer — Pipe Cross-Section</div>
+      <canvas id="tank-canvas"></canvas>
+    </div>
+
+    <!-- Live gauges -->
+    <div class="block">
+      <div class="block-title">Live Sensor Readings (from C++ Backend)</div>
+      <div class="gauge-grid">
+        <div class="gauge">
+          <div class="gauge-label">RESISTIVITY</div>
+          <div class="gauge-number" id="g-res" style="color:var(--accent)">18.20</div>
+          <div class="gauge-unit">M-OHM/CM</div>
+        </div>
+        <div class="gauge">
+          <div class="gauge-label">TOC LEVEL</div>
+          <div class="gauge-number" id="g-toc" style="color:var(--green)">0.05</div>
+          <div class="gauge-unit">PPB</div>
+        </div>
+        <div class="gauge">
+          <div class="gauge-label">TEMPERATURE</div>
+          <div class="gauge-number" id="g-temp" style="color:var(--amber)">25.0</div>
+          <div class="gauge-unit">CELSIUS</div>
+        </div>
+        <div class="gauge">
+          <div class="gauge-label">PRESSURE</div>
+          <div class="gauge-number" id="g-pres" style="color:var(--purple)">45.0</div>
+          <div class="gauge-unit">PSI</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ WINDOW 2 — GUARDIAN ════════════════ -->
+  <div class="panel" id="panel-guardian">
+    <div class="panel-header">
+      WINDOW 02 — GUARDIAN CONTROL SYSTEM
+      <div class="badge red" id="alarm-badge" style="display:none">⚠ ALARM</div>
+      <div class="badge" style="display:block" id="ok-badge">AI ACTIVE</div>
+    </div>
+
+    <!-- Safety Score -->
+    <div class="block">
+      <div class="block-title">AI Safety Score — NeuralNetwork::predict(input)</div>
+      <div class="score-wrap">
+        <div class="score-header">
+          <span class="score-label">SAFETY SCORE</span>
+          <span class="score-number" id="score-big" style="color:var(--green)">0.850</span>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" id="score-fill" style="width:85%;background:var(--green)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Neural Map -->
+    <div class="block">
+      <div class="block-title">Neural Network — Live Activation Map (2→4→1 topology)</div>
+      <canvas id="nn-canvas"></canvas>
+    </div>
+
+    <!-- Actuator Routing -->
+    <div class="block">
+      <div class="block-title">Actuator Routing — MainProcessValve / DiverterValve</div>
+      <div class="pipe-row">
+        <div class="pipe-label">FAB LINE</div>
+        <div class="pipe-track"><div class="pipe-fill" id="pf-fab"   style="width:95%;background:#00aa55"></div></div>
+        <div class="pipe-status" id="ps-fab"   style="color:var(--green)">FLOWING</div>
+      </div>
+      <div class="pipe-row">
+        <div class="pipe-label">RECYCLE</div>
+        <div class="pipe-track"><div class="pipe-fill" id="pf-rec"   style="width:4%;background:#1a2d50"></div></div>
+        <div class="pipe-status" id="ps-rec"   style="color:var(--muted)">IDLE</div>
+      </div>
+      <div class="pipe-row">
+        <div class="pipe-label">WASTE</div>
+        <div class="pipe-track"><div class="pipe-fill" id="pf-waste" style="width:2%;background:#1a2d50"></div></div>
+        <div class="pipe-status" id="ps-waste" style="color:var(--muted)">IDLE</div>
+      </div>
+    </div>
+
+    <!-- Safety Score History Chart -->
+    <div class="block">
+      <div class="block-title">Score History — Last 60 Ticks</div>
+      <canvas id="history-canvas"></canvas>
+    </div>
+
+    <!-- Economic counters -->
+    <div class="block">
+      <div class="block-title">Economic Safety Dashboard</div>
+      <div class="econ-grid">
+        <div class="econ-box">
+          <div class="econ-num" id="e-gal">0.0</div>
+          <div class="econ-lbl">GALLONS SAVED</div>
+        </div>
+        <div class="econ-box">
+          <div class="econ-num" id="e-chip">0.0</div>
+          <div class="econ-lbl">CHIPS PROTECTED</div>
+        </div>
+        <div class="econ-box">
+          <div class="econ-num" id="e-dol">$0</div>
+          <div class="econ-lbl">WASTE PREVENTED</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Log -->
+    <div class="block">
+      <div class="block-title">Event Log — DataLogger Output (fab_telemetry.csv)</div>
+      <div class="log-area" id="log-area"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AUDIO -->
+<audio id="alarm-audio"></audio>
+
+<script>
+const API = 'http://localhost:8081';
+let connected = false;
+let alarmActive = false;
+let alarmOsc = null;
+let audioCtx = null;
+const scoreHistory = [];
+
+// local slider state (applied on top of backend purity for display)
+const localState = { temp: 25, pres: 45, cont: 0, toc: 0 };
+
+let sliderDebounce = null;
+function onSlider() {
+  localState.temp = +document.getElementById('sl-temp').value;
+  localState.pres = +document.getElementById('sl-pres').value;
+  localState.cont = +document.getElementById('sl-cont').value;
+  localState.toc  = +document.getElementById('sl-toc').value;
+  document.getElementById('sv-temp').textContent = localState.temp.toFixed(1) + ' °C';
+  document.getElementById('sv-pres').textContent = localState.pres.toFixed(0) + ' PSI';
+  document.getElementById('sv-cont').textContent = localState.cont.toFixed(1) + ' %';
+  document.getElementById('sv-toc').textContent  = localState.toc.toFixed(1) + ' ppb';
+  document.getElementById('g-temp').textContent  = localState.temp.toFixed(1);
+  document.getElementById('g-pres').textContent  = localState.pres.toFixed(0);
+  // Debounce — send to backend 200ms after last slider move
+  clearTimeout(sliderDebounce);
+  sliderDebounce = setTimeout(() => {
+    const url = `${API}/set_params?temp=${localState.temp}&pres=${localState.pres}&cont=${localState.cont}&toc=${localState.toc}`;
+    fetch(url).catch(() => {});
+    // Log slider event locally
+    const logBox = document.getElementById('log-area');
+    const div = document.createElement('div');
+    div.className = 'log-line l-info';
+    const now = new Date();
+    const ts = now.toTimeString().slice(0,8);
+    div.textContent = `[${ts}] Params updated → Temp:${localState.temp}°C Pres:${localState.pres}PSI Cont:${localState.cont}% TOC:${localState.toc}ppb`;
+    logBox.insertBefore(div, logBox.firstChild);
+  }, 200);
+}
+
+async function sendCmd(endpoint) {
+  const btnMap = { '/inject_leak': 'btn-leak', '/inject_clog': 'btn-clog' };
+  if (btnMap[endpoint]) {
+    const btn = document.getElementById(btnMap[endpoint]);
+    btn.classList.add('active-red');
+    setTimeout(() => btn.classList.remove('active-red'), 3000);
+  }
+  try {
+    await fetch(API + endpoint, { method: 'GET' });
+  } catch(e) {
+    addLog('CMD FAILED: ' + endpoint + ' — backend unreachable', 'alarm');
+  }
+}
+
+async function fetchState() {
+  try {
+    const res = await fetch(API + '/state', { signal: AbortSignal.timeout(1500) });
+    if (!res.ok) throw new Error('bad response');
+    const d = await res.json();
+    setConnected(true);
+    renderState(d);
+  } catch(e) {
+    setConnected(false);
+  }
+}
+
+function setConnected(ok) {
+  connected = ok;
+  const badge = document.getElementById('conn-badge');
+  const banner = document.getElementById('offline-banner');
+  const dot = document.getElementById('top-dot');
+  if (ok) {
+    badge.textContent = '● CONNECTED';
+    badge.className = 'conn-indicator conn-ok';
+    banner.style.display = 'none';
+    dot.style.background = 'var(--green)';
+    dot.style.boxShadow = '0 0 8px var(--green)';
+  } else {
+    badge.textContent = '○ OFFLINE';
+    badge.className = 'conn-indicator conn-fail';
+    banner.style.display = 'block';
+    dot.style.background = 'var(--red)';
+    dot.style.boxShadow = '0 0 8px var(--red)';
+  }
+}
+
+function renderState(d) {
+  // Sync slider display values if backend confirms different slider state
+  if (d.sliderTemp !== undefined) {
+    if (!sliderDebounce) {
+      document.getElementById('sl-temp').value = d.sliderTemp;
+      document.getElementById('sl-pres').value = d.sliderPres;
+      document.getElementById('sl-cont').value = d.sliderCont;
+      document.getElementById('sl-toc').value  = d.sliderToc;
+      document.getElementById('sv-temp').textContent = parseFloat(d.sliderTemp).toFixed(1) + ' °C';
+      document.getElementById('sv-pres').textContent = parseFloat(d.sliderPres).toFixed(0) + ' PSI';
+      document.getElementById('sv-cont').textContent = parseFloat(d.sliderCont).toFixed(1) + ' %';
+      document.getElementById('sv-toc').textContent  = parseFloat(d.sliderToc).toFixed(1) + ' ppb';
+    }
+  }
+  // topbar
+  document.getElementById('top-tick').textContent = d.tick;
+  document.getElementById('top-purity').textContent = (d.purity * 100).toFixed(1) + '%';
+  document.getElementById('top-score').textContent = d.safetyScore.toFixed(3);
+
+  // gauges — resistivity and TOC from backend, temp/pres from sliders
+  const resColor = d.resistivity > 17 ? 'var(--accent)' : d.resistivity > 14 ? 'var(--amber)' : 'var(--red)';
+  const tocColor = d.toc < 2 ? 'var(--green)' : d.toc < 15 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('g-res').textContent = d.resistivity.toFixed(3);
+  document.getElementById('g-res').style.color = resColor;
+  document.getElementById('g-toc').textContent = d.toc.toFixed(3);
+  document.getElementById('g-toc').style.color = tocColor;
+
+  // score
+  const sc = d.safetyScore;
+  const scColor = sc > 0.7 ? 'var(--green)' : sc > 0.4 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('score-big').textContent = sc.toFixed(3);
+  document.getElementById('score-fill').style.width = (sc * 100).toFixed(1) + '%';
+  const scHex = sc > 0.7 ? '#00e676' : sc > 0.4 ? '#ffab00' : '#ff1744';
+  document.getElementById('score-fill').style.background = scHex;
+  document.getElementById('score-big').style.color = scHex;
+
+  // actuators
+  updatePipes(sc, d.fabValve, d.diverter);
+
+  // economic — use backend values (they accumulate in C++)
+  document.getElementById('e-gal').textContent  = parseFloat(d.gallons).toFixed(1);
+  document.getElementById('e-chip').textContent = parseFloat(d.chips).toFixed(2);
+  document.getElementById('e-dol').textContent  = '$' + parseFloat(d.dollars).toFixed(0);
+
+  // alarm
+  updateAlarm(sc);
+
+  // neural network
+  if (d.nn) drawNN(d.nn);
+
+  // tank
+  drawTank(d.purity);
+
+  // score history
+  scoreHistory.push(sc);
+  if (scoreHistory.length > 60) scoreHistory.shift();
+  drawHistory();
+
+  // log entries from backend
+  if (d.log && d.log.length) {
+    const box = document.getElementById('log-area');
+    const existing = box.children.length;
+    const toAdd = d.log.slice(0, Math.min(d.log.length, 20));
+    box.innerHTML = '';
+    toAdd.forEach(entry => {
+      const parts = entry.split('|');
+      const ts = parts[0] || '';
+      const lvl = parts[1] || 'info';
+      const msg = parts.slice(2).join('|');
+      const div = document.createElement('div');
+      div.className = 'log-line l-' + lvl;
+      div.textContent = '[' + ts + '] ' + msg;
+      box.appendChild(div);
+    });
+  }
+}
+
+function updatePipes(score, fabOpen, diverterOpen) {
+  // Ensure boolean (JSON parse gives true/false, but guard against stale strings)
+  const fab  = fabOpen  === true || fabOpen  === "true";
+  const div  = diverterOpen === true || diverterOpen === "true";
+
+  let fabPct, recPct, wastePct, fabCol, recCol, wasteCol, fabTxt, recTxt, wasteTxt;
+  let fabStatusColor, recStatusColor, wasteStatusColor;
+
+  if (fab) {
+    // Water is clean — full flow to chip fab, recycle/waste idle
+    fabPct=94; recPct=4;  wastePct=2;
+    fabCol='#00aa55'; recCol='#1a2d50'; wasteCol='#1a2d50';
+    fabTxt='FLOWING';  recTxt='IDLE';    wasteTxt='IDLE';
+    fabStatusColor='#00e676'; recStatusColor='#4a6080'; wasteStatusColor='#4a6080';
+  } else if (score >= 0.4) {
+    // Marginal quality — partial flow, diverter recycling
+    fabPct=15; recPct=78; wastePct=12;
+    fabCol='#cc8800'; recCol='#2255aa'; wasteCol='#443a10';
+    fabTxt='LIMITED';  recTxt='ACTIVE';  wasteTxt='BYPASS';
+    fabStatusColor='#ffab00'; recStatusColor='#2d7fff'; wasteStatusColor='#ffab00';
+  } else {
+    // Critical — fab line shut, all water to waste/recycle
+    fabPct=0;  recPct=25; wastePct=88;
+    fabCol='#551122'; recCol='#1a3060'; wasteCol='#aa3300';
+    fabTxt='BLOCKED';  recTxt='DIVERTED'; wasteTxt='FLUSHING';
+    fabStatusColor='#ff1744'; recStatusColor='#2d7fff'; wasteStatusColor='#ff1744';
+  }
+
+  setpipe('fab',   fabPct,   fabCol,   fabTxt,   fabStatusColor);
+  setpipe('rec',   recPct,   recCol,   recTxt,   recStatusColor);
+  setpipe('waste', wastePct, wasteCol, wasteTxt, wasteStatusColor);
+}
+
+function setpipe(id, pct, col, txt, txtCol) {
+  document.getElementById('pf-'+id).style.width = pct + '%';
+  document.getElementById('pf-'+id).style.background = col;
+  document.getElementById('ps-'+id).textContent = txt;
+  document.getElementById('ps-'+id).style.color = txtCol;
+}
+
+function updateAlarm(score) {
+  const overlay = document.getElementById('alarm-overlay');
+  const alarmBadge = document.getElementById('alarm-badge');
+  const okBadge = document.getElementById('ok-badge');
+  if (score < 0.3) {
+    if (!alarmActive) {
+      alarmActive = true;
+      overlay.classList.add('active');
+      alarmBadge.style.display = 'block';
+      okBadge.style.display = 'none';
+      playAlarm();
+    }
+  } else {
+    if (alarmActive) {
+      alarmActive = false;
+      overlay.classList.remove('active');
+      alarmBadge.style.display = 'none';
+      okBadge.style.display = 'block';
+      stopAlarm();
+    }
+  }
+}
+
+function playAlarm() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    alarmOsc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    alarmOsc.connect(gain);
+    gain.connect(audioCtx.destination);
+    alarmOsc.type = 'square';
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    let t = audioCtx.currentTime;
+    const beep = () => {
+      if (!alarmOsc) return;
+      alarmOsc.frequency.setValueAtTime(880, t);
+      t += 0.12;
+      alarmOsc.frequency.setValueAtTime(660, t);
+      t += 0.12;
+    };
+    for (let i = 0; i < 20; i++) beep();
+    alarmOsc.start();
+  } catch(e) {}
+}
+function stopAlarm() {
+  try { if (alarmOsc) { alarmOsc.stop(); alarmOsc = null; } } catch(e) {}
+}
+
+// ── Canvas: Tank / Pipe Visualizer ──────────────────────────────────────────
+let tankOffset = 0;
+function drawTank(purity) {
+  const c = document.getElementById('tank-canvas');
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#030609'; ctx.fillRect(0, 0, W, H);
+
+  // Color based on purity
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const bad = 1 - purity;
+  const r = Math.round(lerp(30, 180, bad));
+  const g = Math.round(lerp(120, 50, bad));
+  const b2 = Math.round(lerp(220, 20, bad));
+  const water = `rgba(${r},${g},${b2},0.82)`;
+  const shine = `rgba(${Math.min(255,r+60)},${Math.min(255,g+60)},${Math.min(255,b2+60)},0.4)`;
+
+  tankOffset = (tankOffset + 2.5) % 28;
+
+  const pipes = [
+    { y: H * 0.15, h: H * 0.28, label: 'FAB SUPPLY LINE', flow: true },
+    { y: H * 0.62, h: H * 0.28, label: 'RECYCLE / WASTE', flow: purity < 0.7 }
+  ];
+
+  pipes.forEach(pipe => {
+    // pipe body
+    ctx.fillStyle = '#0b1520';
+    ctx.strokeStyle = '#1e3a5f';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(8, pipe.y, W - 16, pipe.h, 5);
+    ctx.fill(); ctx.stroke();
+
+    if (pipe.flow) {
+      // water fill
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(9, pipe.y + 1, W - 18, pipe.h - 2, 4);
+      ctx.clip();
+      ctx.fillStyle = water;
+      ctx.fillRect(9, pipe.y + 1, W - 18, pipe.h - 2);
+      // flow streaks
+      for (let x = tankOffset; x < W - 16; x += 28) {
+        ctx.fillStyle = shine;
+        ctx.fillRect(9 + x, pipe.y + 4, 16, 3);
+        ctx.fillRect(9 + x + 4, pipe.y + pipe.h / 2, 10, 2);
+      }
+      ctx.restore();
+    }
+
+    // label
+    ctx.fillStyle = '#3a5a80';
+    ctx.font = '9px Share Tech Mono, monospace';
+    ctx.fillText(pipe.label, 16, pipe.y + pipe.h / 2 + 3);
+  });
+
+  // purity readout
+  const pCol = purity > 0.8 ? '#00e676' : purity > 0.5 ? '#ffab00' : '#ff1744';
+  ctx.fillStyle = pCol;
+  ctx.font = 'bold 11px Share Tech Mono, monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('PURITY ' + (purity * 100).toFixed(1) + '%', W - 12, H * 0.15 + H * 0.28 / 2 + 3);
+  ctx.textAlign = 'left';
+}
+
+// ── Canvas: Neural Network ───────────────────────────────────────────────────
+function drawNN(nn) {
+  const c = document.getElementById('nn-canvas');
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H); 
+  ctx.fillStyle = '#030609'; ctx.fillRect(0, 0, W, H);
+
+  const layers = [nn.input, nn.hidden, nn.output];
+  const xs = [W * 0.12, W * 0.5, W * 0.88];
+  const colors = ['#2d7fff', '#b84aff', '#00e676'];
+  const blink = (Date.now() % 700) < 350;
+  const score = nn.output[0];
+  const outColor = score < 0.3 ? '#ff1744' : score < 0.7 ? '#ffab00' : '#00e676';
+
+  // Connections first
+  layers.forEach((layer, li) => {
+    if (li >= layers.length - 1) return;
+    const n = layer.length, nx = layers[li + 1];
+    const spacing = (H - 30) / (n + 1);
+    const startY = (H - (n - 1) * spacing) / 2;
+    const nSpacing = (H - 30) / (nx.length + 1);
+    const nStartY = (H - (nx.length - 1) * nSpacing) / 2;
+
+    layer.forEach((a, ni) => {
+      const y = startY + ni * spacing;
+      nx.forEach((na, nni) => {
+        const ny = nStartY + nni * nSpacing;
+        const w = (a + na) / 2;
+        ctx.beginPath();
+        ctx.moveTo(xs[li] + 10, y);
+        ctx.lineTo(xs[li + 1] - 10, ny);
+        ctx.strokeStyle = w > 0.55
+          ? `rgba(45,127,255,${w * 0.45})`
+          : `rgba(184,74,255,${w * 0.3})`;
+        ctx.lineWidth = w > 0.65 ? 1.5 : 0.5;
+        ctx.stroke();
+      });
+    });
+  });
+
+  // Nodes
+  layers.forEach((layer, li) => {
+    const n = layer.length;
+    const spacing = (H - 30) / (n + 1);
+    const startY = (H - (n - 1) * spacing) / 2;
+    const col = li === layers.length - 1 ? outColor : colors[li];
+
+    layer.forEach((act, ni) => {
+      const x = xs[li], y = startY + ni * spacing;
+      const r = 8 + act * 7;
+      const hot = act > 0.7;
+
+      // glow ring
+      ctx.beginPath(); ctx.arc(x, y, r + 4, 0, Math.PI * 2);
+      const [rr,gg,bb] = hexRgb(col);
+      ctx.fillStyle = `rgba(${rr},${gg},${bb},${act * 0.1 * (hot && blink ? 2 : 1)})`;
+      ctx.fill();
+
+      // node fill
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${rr},${gg},${bb},${0.25 + act * 0.65})`;
+      ctx.strokeStyle = col;
+      ctx.lineWidth = hot ? 1.5 : 0.8;
+      ctx.fill(); ctx.stroke();
+
+      // value label
+      ctx.fillStyle = 'rgba(180,210,255,0.7)';
+      ctx.font = '8px Share Tech Mono,monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(act.toFixed(2), x, y + r + 10);
+    });
+  });
+
+  // Layer labels
+  ['INPUT', 'HIDDEN', 'OUTPUT'].forEach((lbl, i) => {
+    ctx.fillStyle = '#2a3d5a';
+    ctx.font = '8px Share Tech Mono,monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(lbl, xs[i], H - 3);
+  });
+}
+
+// ── Canvas: Score History ────────────────────────────────────────────────────
+function drawHistory() {
+  const c = document.getElementById('history-canvas');
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#030609'; ctx.fillRect(0, 0, W, H);
+
+  if (scoreHistory.length < 2) return;
+
+  // Threshold lines
+  [[0.7, '#00e676'], [0.4, '#ffab00'], [0.3, '#ff1744']].forEach(([thresh, col]) => {
+    const y = H - thresh * (H - 8) - 4;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y);
+    ctx.strokeStyle = col + '44'; ctx.lineWidth = 0.8; ctx.setLineDash([4, 6]); ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  const step = W / (scoreHistory.length - 1);
+  ctx.beginPath();
+  scoreHistory.forEach((s, i) => {
+    const x = i * step;
+    const y = H - s * (H - 8) - 4;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  const last = scoreHistory[scoreHistory.length - 1];
+  const lineCol = last < 0.3 ? '#ff1744' : last < 0.7 ? '#ffab00' : '#00e676';
+  ctx.strokeStyle = lineCol;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Fill area under curve
+  const lastX = (scoreHistory.length - 1) * step;
+  ctx.lineTo(lastX, H); ctx.lineTo(0, H); ctx.closePath();
+  const [rr,gg,bb] = hexRgb(lineCol);
+  ctx.fillStyle = `rgba(${rr},${gg},${bb},0.07)`;
+  ctx.fill();
+}
+
+function hexRgb(hex) {
+  const h = hex.replace('#', '');
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+
+// ── Poll loop ────────────────────────────────────────────────────────────────
+setInterval(fetchState, 500);
+setInterval(() => {
+  drawTank(parseFloat(document.getElementById('top-purity').textContent) / 100 || 1);
+}, 80);
+
+// Initial state render (before first API response)
+renderState({
+  tick:0, resistivity:18.2, toc:0.05, safetyScore:0.85, purity:1.0,
+  fabValve:true, diverter:false, leakActive:false, clogActive:false,
+  gallons:0, chips:0, dollars:0,
+  nn:{ input:[1.0,0.0], hidden:[0.5,0.5,0.5,0.5], output:[0.85] },
+  log:[]
+});
+
+// Try connecting
+fetchState();
+</script>
+</body>
+</html>
