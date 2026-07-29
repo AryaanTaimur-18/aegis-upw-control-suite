@@ -65,3 +65,53 @@ Designed as both a learning project and an engineering simulation, AEGIS demonst
 - Modular C++ architecture with dedicated simulation components.
 - Modern cyber-industrial interface designed for clarity and usability.
 - Designed as an educational simulation of Ultra Pure Water (UPW) monitoring.
+
+## 📸 Screenshots
+
+### Dashboard Overview
+
+The primary control interface displaying live environmental variables, AI safety scoring, actuator status, operational analytics, and event logging.
+
+<p align="center">
+  <img src="assets/screenshots/dashboard-overview.png" width="100%">
+</p>
+
+---
+
+### Normal Operation
+
+The system operating under healthy conditions with stable purity, high resistivity, and uninterrupted production flow.
+
+<p align="center">
+  <img src="assets/screenshots/normal-operation.png" width="100%">
+</p>
+
+---
+
+### Contamination Event
+
+Simulation of a contamination scenario demonstrating automatic safety score degradation, flow diversion, and system response.
+
+<p align="center">
+  <img src="assets/screenshots/contamination-event.png" width="100%">
+</p>
+
+---
+
+### Neural Network Visualization
+
+Live visualization of the feed-forward neural network used to generate the AI safety score.
+
+<p align="center">
+  <img src="assets/screenshots/neural-network.png" width="70%">
+</p>
+
+---
+
+### Event Logging
+
+Real-time telemetry and backend logging for monitoring system behaviour and diagnostics.
+
+<p align="center">
+  <img src="assets/screenshots/system-logs.png" width="70%">
+</p>
