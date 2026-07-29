@@ -31,6 +31,16 @@ The project combines a high-performance C++ backend with a responsive web dashbo
 
 Designed as both a learning project and an engineering simulation, AEGIS demonstrates how industrial automation concepts can be visualized through an interactive digital twin.
 
+## 🎥 Live Demonstration
+
+<p align="center">
+  <img src="assets/demo/aegis-demo.gif" alt="AEGIS Live Demo" width="100%">
+</p>
+
+<p align="center">
+  <em>Real-time monitoring of the Ultra Pure Water simulation, AI safety scoring, actuator control, and interactive dashboard.</em>
+</p>
+
 ## ✨ Features
 
 - 🧠 **AI Safety Prediction**
