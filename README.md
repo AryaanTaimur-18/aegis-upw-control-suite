@@ -220,3 +220,137 @@ AEGIS-UPW-Control-Suite
 ├── aegis_dashboard.html
 └── README.md
 ```
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Before running AEGIS, ensure you have the following installed:
+
+- **C++17 compatible compiler** (GCC/G++)
+- **GNU Make**
+- **Python 3** (for serving the dashboard)
+- A modern web browser (Chrome, Edge, or Firefox)
+
+---
+
+## 📦 Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/AryaanTaimur-18/aegis-upw-control-suite.git
+cd aegis-upw-control-suite
+```
+
+### 2. Build the backend
+
+```bash
+make aegis_server
+```
+
+If `make` is unavailable, compile manually:
+
+```bash
+g++ -std=c++17 server.cpp Environment.cpp Layer.cpp DataLogger.cpp Actuator.cpp -o aegis_server -lpthread
+```
+
+### 3. Start the simulation server
+
+```bash
+./aegis_server
+```
+
+Expected output:
+
+```text
+[AEGIS-SERVER] Listening on http://localhost:8080
+```
+
+### 4. Serve the dashboard
+
+Open another terminal and run:
+
+```bash
+python3 -m http.server 5500
+```
+
+### 5. Open the dashboard
+
+Visit:
+
+```text
+http://localhost:5500/aegis_dashboard.html
+```
+
+If everything is working correctly, the dashboard will display a green **CONNECTED** status and begin updating in real time.
+
+## 💻 Usage
+
+Once the dashboard is running, you can interact with the simulation in real time.
+
+### Monitor
+
+- Water resistivity
+- TOC levels
+- AI safety score
+- Production metrics
+- Event logs
+
+### Simulate
+
+- Contamination events
+- Temperature changes
+- Pressure variations
+- Sensor behaviour
+
+### Observe
+
+- Automatic actuator responses
+- Valve switching
+- Waste diversion
+- Safety score updates
+- Neural network visualisation
+
+## 🗺️ Roadmap
+
+- [x] Modern C++ simulation engine
+- [x] Interactive web dashboard
+- [x] Neural-network safety prediction
+- [x] Event logging
+- [x] Real-time HTTP API
+- [ ] Historical data visualisation
+- [ ] Authentication & user roles
+- [ ] Docker deployment
+- [ ] Configurable simulation profiles
+- [ ] REST API documentation
+- [ ] Unit tests
+- [ ] CI/CD pipeline
+
+## 🔮 Future Improvements
+
+Future versions of AEGIS may include:
+
+- Advanced machine learning models for predictive maintenance
+- Historical trend analysis and reporting
+- Multi-user dashboard access
+- Docker-based deployment
+- Database integration for persistent telemetry
+- Mobile-responsive monitoring interface
+- Automated testing and continuous integration
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+See the `LICENSE` file for details.
+
+## 👨‍💻 Author
+
+**Aryaan Taimur Saeed**
+
+Data Science Undergraduate  
+FAST – National University of Computer and Emerging Sciences (FAST-NUCES), Karachi Campus
+
+- GitHub: https://github.com/AryaanTaimur-18
+- LinkedIn: https://www.linkedin.com/in/aryaan-taimur-saeed-b380b73a0/
