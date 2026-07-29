@@ -125,3 +125,98 @@ The simulation engine is implemented in Modern C++ and exposes a lightweight HTT
 <p align="center">
   <img src="assets/diagrams/architecture.png" width="100%">
 </p>
+
+## ⚙️ How It Works
+
+AEGIS simulates the operation of an industrial Ultra Pure Water (UPW) treatment system through a continuous real-time simulation loop.
+
+Each simulation cycle performs the following operations:
+
+1. **Read Environmental Inputs**
+   - Temperature, pressure, contamination level, and Total Organic Carbon (TOC) are updated from the simulation controls.
+
+2. **Simulate Water Quality**
+   - The simulation calculates purity, resistivity, and other process variables based on the current operating conditions.
+
+3. **AI Safety Evaluation**
+   - A feed-forward neural network analyses the simulated water quality and generates an overall safety score.
+
+4. **Decision Making**
+   - The backend determines whether purification should continue, divert water to waste, or trigger protective actions.
+
+5. **Update Actuators**
+   - Valves and routing mechanisms respond automatically to the evaluated system state.
+
+6. **Generate System State**
+   - The complete simulation state is serialized into JSON.
+
+7. **Refresh Dashboard**
+   - The browser fetches the latest data through the HTTP API, updating gauges, charts, indicators, and event logs in real time.
+
+   ## 🔄 Simulation Pipeline
+
+```text
+User Controls
+      │
+      ▼
+Environmental Parameters
+      │
+      ▼
+Simulation Engine
+      │
+      ▼
+Water Quality Model
+      │
+      ▼
+Neural Network Inference
+      │
+      ▼
+Safety Score
+      │
+      ▼
+Actuator Decisions
+      │
+      ▼
+JSON State Generation
+      │
+      ▼
+HTTP API
+      │
+      ▼
+Real-Time Dashboard
+```
+
+## 🛠️ Technology Stack
+
+| Category | Technologies |
+|----------|--------------|
+| Language | Modern C++17 |
+| Frontend | HTML5, CSS3, JavaScript |
+| Backend | Custom HTTP Server |
+| AI | Feed-Forward Neural Network |
+| Networking | REST-style JSON API |
+| Build System | GNU Make |
+| Platform | Windows (WSL), Linux |
+
+## 📂 Project Structure
+
+```text
+AEGIS-UPW-Control-Suite
+│
+├── assets/
+│   ├── branding/
+│   ├── diagrams/
+│   ├── screenshots/
+│   └── demo/
+│
+├── docs/
+│
+├── server.cpp
+├── Environment.cpp
+├── Layer.cpp
+├── DataLogger.cpp
+├── Actuator.cpp
+├── Makefile
+├── aegis_dashboard.html
+└── README.md
+```
