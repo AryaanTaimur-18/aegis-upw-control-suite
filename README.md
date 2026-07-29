@@ -115,3 +115,13 @@ Real-time telemetry and backend logging for monitoring system behaviour and diag
 <p align="center">
   <img src="assets/screenshots/system-logs.png" width="70%">
 </p>
+
+## 🏗️ System Architecture
+
+AEGIS follows a modular client-server architecture.
+
+The simulation engine is implemented in Modern C++ and exposes a lightweight HTTP API that streams the current system state to a browser-based dashboard. Environmental variables, sensors, actuators, neural-network inference, and event logging operate independently before being consolidated into a unified simulation state that is rendered in real time.
+
+<p align="center">
+  <img src="assets/diagrams/architecture.png" width="100%">
+</p>
