@@ -2,6 +2,10 @@
   <img src="assets/branding/github-banner.png" alt="AEGIS Banner">
 </p>
 
+<p align="center">
+  <img src="assets/branding/logo-dark.png" width="170">
+</p>
+
 <h1 align="center">AEGIS</h1>
 
 <p align="center">
@@ -31,15 +35,41 @@ The project combines a high-performance C++ backend with a responsive web dashbo
 
 Designed as both a learning project and an engineering simulation, AEGIS demonstrates how industrial automation concepts can be visualized through an interactive digital twin.
 
+## 🎯 Why AEGIS?
+
+Ultra Pure Water (UPW) systems are critical in semiconductor manufacturing, where even microscopic contaminants can reduce production yield or damage equipment.
+
+AEGIS was built to simulate the monitoring and control of a UPW system using a modular Modern C++ backend and a responsive web dashboard. The project demonstrates concepts commonly found in industrial automation, including real-time telemetry, safety evaluation, actuator control, event logging, and AI-assisted decision making.
+
+## 📑 Table of Contents
+
+- [Live Demonstration](#-live-demonstration)
+- [Features](#-features)
+- [Project Highlights](#-project-highlights)
+- [Screenshots](#-screenshots)
+- [System Architecture](#-system-architecture)
+- [How It Works](#-how-it-works)
+- [Technology Stack](#-technology-stack)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [Usage](#-usage)
+- [Roadmap](#-roadmap)
+- [Future Improvements](#-future-improvements)
+- [License](#-license)
+- [Author](#-author)
+
 ## 🎥 Live Demonstration
 
+Watch the AEGIS simulation respond to changing environmental conditions in real time.
+
 <p align="center">
-  <img src="assets/demo/aegis-demo.gif" alt="AEGIS Live Demo" width="100%">
+  <img src="assets/demo/aegis-demo.gif" alt="AEGIS Live Demo" width="90%">
 </p>
 
 <p align="center">
-  <em>Real-time monitoring of the Ultra Pure Water simulation, AI safety scoring, actuator control, and interactive dashboard.</em>
+  <em>Real-time monitoring, AI safety scoring, actuator control, and live system telemetry.</em>
 </p>
+
 
 ## ✨ Features
 
@@ -67,7 +97,7 @@ Designed as both a learning project and an engineering simulation, AEGIS demonst
 - 🎛️ **Interactive Controls**
   - Adjust environmental parameters, inject contamination, simulate failures, and observe immediate system responses.
 
-  ## 🚀 Project Highlights
+## 🚀 Project Highlights
 
 - Real-time communication between a C++ backend and a browser-based dashboard.
 - Interactive digital twin inspired by industrial SCADA systems.
@@ -163,7 +193,7 @@ Each simulation cycle performs the following operations:
 7. **Refresh Dashboard**
    - The browser fetches the latest data through the HTTP API, updating gauges, charts, indicators, and event logs in real time.
 
-   ## 🔄 Simulation Pipeline
+## 🔄 Simulation Pipeline
 
 ```text
 User Controls
